@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+    <title>UUID helper</title>
+    <script>
+      function convertToS12Id(uuid, prefix) {
+      	    console.log("----", validate(uuid));
+		    return validate(uuid) ? `${prefix}_${uuid.replace(/-/g, "")}` : uuid;
+	    }
+
+	    // convertFromS12ID will return the string representation if a valid ID in the s12 system
+	    // In most cases this will be in the form of a UUID
+	    // For example:
+	    // "user_6e3e3fb060854e2ab2fb897424c3ea75" would be returned as `6e3e3fb0-6085-4e2ab-2fb89-7424c3ea75`,
+	    // "f3245d44-ea77-11e1-aff1-0800200c9a66" would just be `f3245d44-ea77-11e1-aff1-0800200c9a66`
+	    // "audit_C6C011ED-4ADE-460D-A04B-DA730834B667" would be returned as `C6C011ED-4ADE-460D-A04B-DA730834B667`
+	    // There are some s12 ids that do not parse as a UUID, so these are returned as-is
+	    // For example:
+	    // "occurrence_1534762800000" would be `occurrence_1534762800000`
+      function convertFromS12Id(s12Id) {
+		    const uId = s12Id.split("_")[1];
+		    // If uId is undefined or length < 32, return original s12Id
+		    let hyphenId = s12Id;
+
+		    if (uId && uId.length === 32) {
+			    hyphenId = [
+				    uId.slice(0, 8),
+				    uId.slice(8, 12),
+				    uId.slice(12, 16),
+				    uId.slice(16, 20),
+				    uId.slice(20, 32),
+			    ].join("-");
+		    }
+
+		    return validate(hyphenId) ? hyphenId : s12Id;
+	    }
+
+	    function validate(uuid) {
+		    const pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+		    return pattern.test(uuid);
+	    }
+
+	    function onS12ResultCalculate() {
+          const uuid = document.getElementById("uuid").value.trim();
+          const prefix = document.getElementById("prefix").value.trim();
+          if (uuid && prefix) {
+	          document.getElementById("s12-result").innerText = convertToS12Id(uuid, prefix);
+          } else {
+	          document.getElementById("s12-result").innerText = "Invalid input";
+          }
+        }
+
+        function onUUIDCalculate() {
+          const s12ID = document.getElementById("s12ID").value.trim();
+	        if (s12ID) {
+		        document.getElementById("uuid-result").innerText = convertFromS12Id(s12ID);
+	        }
+        }
+
+    </script>
+</head>
+<body>
+<div style="margin: 0 16px; display: flex;">
+    <div style="margin-top: 16px; flex-basis: 300px;">
+        <p>UUID to S12 id</p>
+        <div>
+            <label for="uuid">UUID</label>
+            <input type="text" id="uuid" onchange="onS12ResultCalculate()" />
+        </div>
+        <div style="margin-top: 16px" onchange="onS12ResultCalculate()">
+            <label for="prefix">Prefix</label>
+            <select name="prefix" id="prefix">
+                <option value="audit">Audit</option>
+                <option value="template">Template</option>
+                <option value="user">User</option>
+                <option value="location">Location</option>
+            </select>
+        </div>
+        <p id="s12-result"></p>
+    </div>
+    <div style="margin-top: 16px; margin-left: 100px;">
+        <p>S12 id to UUID</p>
+        <div>
+            <label for="s12ID">S12 id</label>
+            <input type="text" id="s12ID" onchange="onUUIDCalculate()" />
+        </div>
+        <p id="uuid-result"></p>
+    </div>
+</div>
+</body>
+</html>
